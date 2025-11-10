@@ -1,5 +1,5 @@
+import java.util.List;
 import java.util.Scanner;
-
 
 public class Sistema {
 
@@ -13,6 +13,9 @@ public class Sistema {
         this.gerDespesas = new GerenciadorDespesas();
         this.scanner = new Scanner(System.in);
         this.usuarioLogado = null;
+
+        // Carrega os dados salvos na inicialização
+        _carregarDados();
     }
 
     public static void main(String[] args) {
@@ -24,11 +27,29 @@ public class Sistema {
         if (_menuLogin()) {
             _menuPrincipal();
         }
-        System.out.println("Sistema finalizado.");
+        
+        System.out.println("Sistema finalizado. Salvando dados...");
+        _salvarDados();
         scanner.close();
     }
 
+
+    private void _carregarDados() {
+        System.out.println("Carregando dados do sistema...");
+        gerUsuarios.carregarDados();
+        gerDespesas.carregarDados();
+        System.out.println("Carregamento concluído.");
+    }
+
+    private void _salvarDados() {
+        gerUsuarios.salvarDados();
+        gerDespesas.salvarDados();
+        System.out.println("Dados salvos com sucesso.");
+    }
+
+
     private boolean _menuLogin() {
+        // ... (código inalterado) ...
         while (true) {
             System.out.println("\n--- LOGIN ---");
             System.out.println("1. Login");
@@ -55,7 +76,13 @@ public class Sistema {
                 String login = scanner.nextLine();
                 System.out.print("Nova Senha: ");
                 String senha = scanner.nextLine();
-                gerUsuarios.cadastrar(login, senha);
+                
+                boolean sucesso = gerUsuarios.cadastrar(login, senha);
+                if (sucesso) {
+                    System.out.println("Usuário " + login + " cadastrado.");
+                } else {
+                    System.out.println("Erro: Login já existe.");
+                }
             } else if (escolha.equals("3")) {
                 return false;
             }
@@ -63,6 +90,7 @@ public class Sistema {
     }
 
     private void _menuPrincipal() {
+        // ... (código inalterado) ...
         while (true) {
             System.out.printf("\n--- MENU PRINCIPAL (%s) ---\n", this.usuarioLogado.getLogin());
             System.out.println("1. Entrar Despesa");
@@ -76,15 +104,32 @@ public class Sistema {
             switch (escolha) {
                 case "1": _uiEntrarDespesa(); break;
                 case "2": _uiAnotarPagamento(); break;
-                case "3": gerDespesas.listarPorStatus("Pendente"); break;
-                case "4": gerDespesas.listarPorStatus("Paga"); break;
+                case "3": _uiListarDespesas("Pendente"); break;
+                case "4": _uiListarDespesas("Paga"); break;
                 case "5": return;
                 default: System.out.println("Opção inválida.");
             }
         }
     }
 
+    private void _uiListarDespesas(String status) {
+        // ... (código inalterado) ...
+        System.out.printf("\n--- Despesas com Status: %S ---\n", status);
+        
+        List<DespesaBase> despesas = gerDespesas.encontrarPorStatus(status);
+
+        if (despesas.isEmpty()) {
+            System.out.println("Nenhuma despesa encontrada.");
+        } else {
+            for (DespesaBase d : despesas) {
+                System.out.println(d.toString());
+                System.out.printf("   (Valor com imposto: R$%.2f)\n", d.getValorComImposto());
+            }
+        }
+    }
+
     private void _uiEntrarDespesa() {
+        // ... (código inalterado) ...
         try {
             System.out.println("\n--- Nova Despesa ---");
             System.out.print("Descrição: ");
@@ -101,11 +146,15 @@ public class Sistema {
             DespesaBase novaDespesa;
             if (tipo.equals("1")) {
                 novaDespesa = new DespesaTransporte(desc, valor);
-            } else {
+            } else if (tipo.equals("2")) {
                 novaDespesa = new DespesaEventual(desc, valor);
+            } else {
+                System.out.println("Tipo inválido. Despesa cancelada.");
+                return;
             }
             
             gerDespesas.adicionar(novaDespesa);
+            System.out.println("Despesa adicionada com sucesso.");
 
         } catch (NumberFormatException e) {
             System.out.println("Erro: Valor inválido.");
@@ -113,18 +162,23 @@ public class Sistema {
     }
 
     private void _uiAnotarPagamento() {
+        // ... (código inalterado) ...
         try {
             System.out.println("\n--- Pagar Despesa ---");
-            gerDespesas.listarPorStatus("Pendente");
-            System.out.print("Digite o ID da despesa a pagar: ");
+            
+            _uiListarDespesas("Pendente"); 
+            System.out.print("\nDigite o ID da despesa a pagar (ou 0 para cancelar): ");
             int id = Integer.parseInt(scanner.nextLine());
+
+            if (id == 0) return;
             
             DespesaBase despesa = gerDespesas.encontrarPorId(id);
             if (despesa != null) {
-                if (despesa.getStatus().equals("Pendente")) {
-                    despesa.pagar();
+                boolean sucesso = despesa.pagar();
+                if (sucesso) {
+                    System.out.printf("Despesa ID %d (%s) foi paga.\n", despesa.getId(), despesa.getDescricao());
                 } else {
-                    System.out.println("Esta despesa já foi paga.");
+                    System.out.printf("Despesa ID %d (%s) já estava paga.\n", despesa.getId(), despesa.getDescricao());
                 }
             } else {
                 System.out.println("ID não encontrado.");
