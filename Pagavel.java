@@ -1,4 +1,4 @@
 public interface Pagavel {
-    void pagar();
+    boolean pagar();
     String getStatus();
 }
