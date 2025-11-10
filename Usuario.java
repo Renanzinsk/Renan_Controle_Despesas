@@ -1,4 +1,3 @@
-
 public class Usuario {
     private String login;
     private String senha; 
@@ -10,6 +9,10 @@ public class Usuario {
 
     public String getLogin() {
         return login;
+    }
+
+    public String getSenha() {
+        return this.senha;
     }
 
     public boolean autenticar(String senhaDigitada) {
