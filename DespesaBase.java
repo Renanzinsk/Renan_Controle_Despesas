@@ -1,6 +1,4 @@
-
 public abstract class DespesaBase implements Pagavel {
-
 
     private static int contadorId = 0;
 
@@ -9,22 +7,20 @@ public abstract class DespesaBase implements Pagavel {
     protected double valor;
     protected String status;
 
-
     public DespesaBase(String descricao, double valor) {
         this.id = ++contadorId;
         this.descricao = descricao;
         this.valor = valor;
-        // Inicialmente pendente
-        this.status = "Pendente";
+            this.status = "Pendente";
     }
 
     @Override
-    public void pagar() {
+    public boolean pagar() {
         if (!"Paga".equals(this.status)) {
             this.status = "Paga";
-            System.out.printf("Despesa ID %d (%s) foi paga.\n", this.id, this.descricao);
+            return true;
         } else {
-            System.out.printf("Despesa ID %d (%s) já está paga.\n", this.id, this.descricao);
+            return false;
         }
     }
 
@@ -36,6 +32,27 @@ public abstract class DespesaBase implements Pagavel {
     public int getId() {
         return this.id;
     }
+
+    public String getDescricao() {
+        return this.descricao;
+    }
+    
+    public double getValor() {
+        return this.valor;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public static void setContadorId(int id) {
+        contadorId = id;
+    }
+    
 
     @Override
     public String toString() {
